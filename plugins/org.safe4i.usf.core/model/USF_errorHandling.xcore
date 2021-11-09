@@ -1,0 +1,37 @@
+/**
+ * Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),
+ * ScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ */
+ 
+@Ecore(nsURI="https://www.universalsafetyformat.org/errorHandling")
+@GenModel(prefix="ErrorHandling", modelDirectory="org.safe4i.usf.core/src-gen", complianceLevel="8.0",
+	editPluginClass="org.safe4i.usf.core.usfmodel.USFEditPlugin", editDirectory="org.safe4i.usf.core.edit/src-gen",
+	childCreationExtenders="true", extensibleProviderFactory="true", copyrightText="Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),\nScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.\nThis program and the accompanying materials are made available under the\nterms of the Eclipse Public License 2.0 which is available at\nhttp://www.eclipse.org/legal/epl-2.0.\n\nSPDX-License-Identifier: EPL-2.0")
+package org.safe4i.usf.core.usfmodel.errorHandling
+
+import org.safe4i.usf.core.usfmodel.block.BlockType
+import org.safe4i.usf.core.usfmodel.block.DataFlowPort
+import org.safe4i.usf.core.usfmodel.controlFlow.ControlFlowPort
+
+/**
+ * Dedicated block type for error handling
+ */
+class ErrorHandler extends BlockType {
+}
+
+/**
+ * Dedicated error port for error handling
+ */
+class ErrorDataPort extends DataFlowPort {
+}
+
+/**
+ * Dedicated port for error handling control flow
+ */
+class ErrorControlFlowPort extends ControlFlowPort {
+}

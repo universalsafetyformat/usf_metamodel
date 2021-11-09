@@ -1,0 +1,62 @@
+/**
+ * Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),
+ * ScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ */
+ 
+@Ecore(nsURI="https://www.universalsafetyformat.org/safetyPattern")
+@GenModel(prefix="SafetyPattern", modelDirectory="org.safe4i.usf.core/src-gen", complianceLevel="8.0",
+	editPluginClass="org.safe4i.usf.core.usfmodel.USFEditPlugin", editDirectory="org.safe4i.usf.core.edit/src-gen",
+	childCreationExtenders="true", extensibleProviderFactory="true", copyrightText="Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),\nScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.\nThis program and the accompanying materials are made available under the\nterms of the Eclipse Public License 2.0 which is available at\nhttp://www.eclipse.org/legal/epl-2.0.\n\nSPDX-License-Identifier: EPL-2.0")
+package org.safe4i.usf.core.usfmodel.safetyPattern
+
+import org.safe4i.usf.core.usfmodel.common.DocumentedElement
+import org.safe4i.usf.core.usfmodel.common.IModelContent
+import org.safe4i.usf.core.usfmodel.common.Identifiable
+import org.safe4i.usf.core.usfmodel.common.NamedElement
+import org.safe4i.usf.core.usfmodel.parameter.BlockParameterDefinition
+import org.safe4i.usf.core.usfmodel.parameter.BlockParameterValue
+import org.safe4i.usf.core.usfmodel.parameter.BlockTypeParameterDefinition
+import org.safe4i.usf.core.usfmodel.parameter.BlockTypeParameterValue
+import org.safe4i.usf.core.usfmodel.parameter.ConnectionParameterDefinition
+import org.safe4i.usf.core.usfmodel.parameter.ConnectionParameterValue
+import org.safe4i.usf.core.usfmodel.parameter.DomainTypeParameterDefinition
+import org.safe4i.usf.core.usfmodel.parameter.DomainTypeParameterValue
+import org.safe4i.usf.core.usfmodel.parameter.PortParameterDefinition
+import org.safe4i.usf.core.usfmodel.parameter.PortParameterValue
+import org.safe4i.usf.core.usfmodel.parameter.TransformationTypeParameterDefinition
+import org.safe4i.usf.core.usfmodel.parameter.TransformationTypeValue
+
+// ****************************************************************
+// Safety Measure Type and Instance concept
+// ****************************************************************
+/**
+ * Instance class of a safety measure, it's typed by a SafetyPattern, so it has access to all SafetyPatternArguments
+ */
+class SafetyPatternApplication extends IModelContent, NamedElement, DocumentedElement, Identifiable {
+	refers SafetyPattern[1] ^type
+	contains BlockParameterValue[0..*] blockParameterArguments
+	contains BlockTypeParameterValue[0..*] blockTypeParameterArguments
+	contains PortParameterValue[0..*] portParameterArguments
+	contains ConnectionParameterValue[0..*] connectionParameterArguments
+	contains TransformationTypeValue[0..*] trafoTypeArguments
+	contains DomainTypeParameterValue[0..*] domainTypeArguments
+}
+
+/**
+ * Type class of a safety measure, acts as blueprint for concrete SafetyPattern and defines the interface
+ * required for the safety weaving transformation
+ */
+class SafetyPattern extends IModelContent, NamedElement, DocumentedElement, Identifiable {
+	contains BlockParameterDefinition[0..*] blockParameters
+	contains BlockTypeParameterDefinition[0..*] blockTypeParameters
+	contains PortParameterDefinition[0..*] portParameters
+	contains ConnectionParameterDefinition[0..*] connectionParameters
+	contains TransformationTypeParameterDefinition[0..*] trafoTypeParameterDefinitions
+	contains DomainTypeParameterDefinition[0..*] domainTypeParameterDefinitions
+}
+

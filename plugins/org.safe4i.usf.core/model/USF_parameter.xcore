@@ -1,0 +1,247 @@
+/**
+ * Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),
+ * ScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ */
+ 
+@Ecore(nsURI="https://www.universalsafetyformat.org/parameter")
+@GenModel(prefix="Parameters", modelDirectory="org.safe4i.usf.core/src-gen", complianceLevel="8.0",
+	editPluginClass="org.safe4i.usf.core.usfmodel.USFEditPlugin", editDirectory="org.safe4i.usf.core.edit/src-gen",
+	childCreationExtenders="true", extensibleProviderFactory="true", copyrightText="Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),\nScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.\nThis program and the accompanying materials are made available under the\nterms of the Eclipse Public License 2.0 which is available at\nhttp://www.eclipse.org/legal/epl-2.0.\n\nSPDX-License-Identifier: EPL-2.0")
+package org.safe4i.usf.core.usfmodel.parameter
+
+import org.safe4i.usf.core.usfmodel.block.Block
+import org.safe4i.usf.core.usfmodel.block.BlockType
+import org.safe4i.usf.core.usfmodel.block.Connection
+import org.safe4i.usf.core.usfmodel.block.Port
+import org.safe4i.usf.core.usfmodel.block.PortDirection
+import org.safe4i.usf.core.usfmodel.common.ArrayType
+import org.safe4i.usf.core.usfmodel.common.DocumentedElement
+import org.safe4i.usf.core.usfmodel.common.EnumerationType
+import org.safe4i.usf.core.usfmodel.common.IModelContent
+import org.safe4i.usf.core.usfmodel.common.Identifiable
+import org.safe4i.usf.core.usfmodel.common.NamedElement
+import org.safe4i.usf.core.usfmodel.common.PrimitiveType
+import org.safe4i.usf.core.usfmodel.common.DomainType
+
+/*******************************************************************************
+ * Stereotypes and Parameters
+ *******************************************************************************/
+ 
+/**
+ * Class for the definition of stereotypes that can be assigned through StereotypeAssignment.
+ */
+class Stereotype extends NamedElement, IModelContent, DocumentedElement, Identifiable {
+	refers ParameterDefinition[0..*] parameters
+}
+
+/**
+ * Base class to define a Parameter in the USF model.
+ */
+abstract class ParameterDefinition extends NamedElement, IModelContent, DocumentedElement, Identifiable {
+	boolean[1] optional = "false"
+}
+
+/**
+ * Base class for to define a primitive Parameter in the USF model.
+ */
+abstract class BasePrimitiveParameterDefinition extends ParameterDefinition {
+	String[0..1] defaultValue
+}
+
+/**
+ * Used to define a primitive parameter which consists of a single value.
+ */
+class PrimitiveParameterDefinition extends BasePrimitiveParameterDefinition {
+	refers PrimitiveType[1] ^type
+}
+
+/**
+ * Used to define a array parameter which consists of multiple values separated by the 'delimiter'.
+ */
+class ArrayParameterDefinition extends BasePrimitiveParameterDefinition {
+	refers ArrayType[1] ^type
+	String[1] delimiter = ','
+}
+
+/**
+ * Used to define a enumeration parameter which consists of a single value. The value is implicit limited by the EnumerationLiterals.
+ */
+class EnumerationParameterDefinition extends BasePrimitiveParameterDefinition {
+	refers EnumerationType[1] ^type
+}
+
+/**
+ * Used to define a value for a parameter.
+ */
+class PrimitiveParameterValue extends Identifiable {
+	refers BasePrimitiveParameterDefinition[1] parameter
+	String[0..1] value
+}
+
+/**
+ * Used to define a simple value for a parameter.
+ */
+abstract class StereotypeAssignment extends IModelContent, Identifiable {
+	refers Stereotype[1..*] assignedStereotypes
+	contains PrimitiveParameterValue[0..*] values
+}
+
+class BlockStereotypeAssignment extends StereotypeAssignment {
+	refers Block[1] context
+}
+
+class BlockTypeStereotypeAssignment extends StereotypeAssignment {
+	refers BlockType[1] context
+}
+
+class PortStereotypeAssignment extends StereotypeAssignment {
+	refers Block[0..1] relatedBlock
+	refers Port[1] context
+}
+
+class ConnectionStereotypeAssignment extends StereotypeAssignment {
+	refers Connection[1] context
+}
+
+/**
+ * Base class to assign a Parameters to USF Model elements.
+ */
+abstract class ParameterAssignment extends IModelContent, Identifiable {
+	contains PrimitiveParameterValue[1..*] values
+}
+
+/**
+ * Class to assign Parameters to Blocks.
+ */
+class BlockParameterAssignment extends ParameterAssignment {
+	refers Block[1] context
+}
+
+/**
+ * Class to assign Parameters to BlockTypes.
+ */
+class BlockTypeParameterAssignment extends ParameterAssignment {
+	refers BlockType[1] context
+}
+
+/**
+ * Class to assign Parameters to Ports. The relatedBlock is optional. If the Block is specified the Port of a dedicated Block is intended to use the Parameters. 
+ * If the 'relatedBlock' is not set the parameters are global which means they are used for any Port occurrence of the given port (TODO: try to explain it better). 
+ */
+class PortParameterAssignment extends ParameterAssignment {
+	refers Block[0..1] relatedBlock
+	refers Port[1] context
+}
+
+/**
+ * Class to assign Parameters to Connections.
+ */
+class ConnectionParameterAssignment extends ParameterAssignment {
+	refers Connection[1] context
+}
+
+
+/*******************************************************************************
+ * Transformation parameter
+ *******************************************************************************/
+ 
+/**
+ * Base class for to define a parameters used in transformations.
+ */
+abstract class TransformationParameterDefinition extends NamedElement, IModelContent, DocumentedElement, Identifiable {
+
+}
+
+/**
+ * Supported primitive types for transformation parameters.
+ */
+enum TransformationPrimitiveType {
+	Integer = 0
+	Float = 1
+	String = 2
+	Boolean = 3
+	Void = 4
+}
+
+class TransformationTypeParameterDefinition extends TransformationParameterDefinition {
+	TransformationPrimitiveType[1] ^type
+	String[0..1] defaultValue
+}
+
+class DomainTypeParameterDefinition extends TransformationParameterDefinition {
+	refers DomainType[0..1] constrainingDomainType
+	refers DomainType[0..1] defaultValue
+}
+
+/**
+ * Base class for model based transformation parameters.
+ */
+abstract class ModelParameterDefinition extends TransformationParameterDefinition {
+	boolean[1] many = "false"
+}
+
+class BlockParameterDefinition extends ModelParameterDefinition {
+	// optional signature to further constrain the argument
+	refers BlockType[0..1] constrainingBlockType
+	refers Block[0..1] defaultValue
+}
+
+class PortParameterDefinition extends ModelParameterDefinition {
+	// optional signature to further constrain the argument
+	refers DomainType[0..1] constrainingPortType
+	refers Port[0..1] defaultValue
+	PortDirection[0..1] constrainingDirection = "UNSET"
+	boolean[1] controlflowPort = "false"
+}
+
+class BlockTypeParameterDefinition extends ModelParameterDefinition {
+	// optional signature to further constrain the argument
+	refers BlockType[0..1] constrainingBlockType
+	refers BlockType[0..1] defaultValue
+}
+
+class ConnectionParameterDefinition extends ModelParameterDefinition {
+	refers Connection[0..1] defaultValue
+	boolean[1] controlflowConnection = "false"
+}
+
+abstract class TransformationArgument extends Identifiable {
+}
+
+class TransformationTypeValue extends TransformationArgument {
+	refers TransformationTypeParameterDefinition[1] parameter
+	// workaround for editor
+	String[0..1] value
+}
+
+class DomainTypeParameterValue extends TransformationArgument {
+	refers DomainTypeParameterDefinition[1] parameter
+	// workaround for editor
+	refers DomainType[0..1] value
+}
+
+class BlockParameterValue extends TransformationArgument {
+	refers BlockParameterDefinition[1] parameter
+	refers Block[1] value
+}
+
+class BlockTypeParameterValue extends TransformationArgument {
+	refers BlockTypeParameterDefinition[1] parameter
+	refers BlockType[1] value
+}
+
+class PortParameterValue extends TransformationArgument {
+	refers PortParameterDefinition[1] parameter
+	refers Port[1] value
+	refers Block[0..1] contextBlock
+}
+
+class ConnectionParameterValue extends TransformationArgument {
+	refers ConnectionParameterDefinition[1] parameter
+	refers Connection[1] value
+} 

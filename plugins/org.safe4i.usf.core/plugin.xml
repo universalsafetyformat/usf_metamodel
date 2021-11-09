@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+-->
+
+<plugin>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated USF_portTemplate -->
+      <package
+            uri="https://www.universalsafetyformat.org/portTemplate"
+            class="org.safe4i.usf.core.usfmodel.portTemplate.PortTemplatesPackage"
+            genModel="model/USF_portTemplate.xcore"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated USF_parameter -->
+      <package
+            uri="https://www.universalsafetyformat.org/parameter"
+            class="org.safe4i.usf.core.usfmodel.parameter.ParametersPackage"
+            genModel="model/USF_parameter.xcore"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated USF_controlFlow -->
+      <package
+            uri="https://www.universalsafetyformat.org/controlFlow"
+            class="org.safe4i.usf.core.usfmodel.controlFlow.ControlFlowsPackage"
+            genModel="model/USF_controlFlow.xcore"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated USF_errorHandling -->
+      <package
+            uri="https://www.universalsafetyformat.org/errorHandling"
+            class="org.safe4i.usf.core.usfmodel.errorHandling.ErrorHandlingPackage"
+            genModel="model/USF_errorHandling.xcore"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated USF_block -->
+      <package
+            uri="https://www.universalsafetyformat.org/block"
+            class="org.safe4i.usf.core.usfmodel.block.BlocksPackage"
+            genModel="model/USF_block.xcore"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated USF_common -->
+      <package
+            uri="https://www.universalsafetyformat.org/common"
+            class="org.safe4i.usf.core.usfmodel.common.CommonsPackage"
+            genModel="model/USF_common.xcore"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated USF_safetypattern -->
+      <package
+            uri="https://www.universalsafetyformat.org/safetyPattern"
+            class="org.safe4i.usf.core.usfmodel.safetyPattern.SafetyPatternPackage"
+            genModel="model/USF_safetypattern.xcore"/>
+   </extension>
+
+</plugin>

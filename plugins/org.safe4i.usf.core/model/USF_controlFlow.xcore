@@ -1,0 +1,262 @@
+/**
+ * Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),
+ * ScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ */
+ 
+@Ecore(nsURI="https://www.universalsafetyformat.org/controlFlow")
+@GenModel(prefix="ControlFlows", modelDirectory="org.safe4i.usf.core/src-gen", complianceLevel="8.0",
+	editPluginClass="org.safe4i.usf.core.usfmodel.USFEditPlugin", editDirectory="org.safe4i.usf.core.edit/src-gen",
+	childCreationExtenders="true", extensibleProviderFactory="true", copyrightText="Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),\nScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.\nThis program and the accompanying materials are made available under the\nterms of the Eclipse Public License 2.0 which is available at\nhttp://www.eclipse.org/legal/epl-2.0.\n\nSPDX-License-Identifier: EPL-2.0")
+package org.safe4i.usf.core.usfmodel.controlFlow
+
+import org.safe4i.usf.core.usfmodel.block.AbstractBlockType
+import org.safe4i.usf.core.usfmodel.block.Block
+import org.safe4i.usf.core.usfmodel.block.Connection
+import org.safe4i.usf.core.usfmodel.block.DataFlowPort
+import org.safe4i.usf.core.usfmodel.block.Port
+import org.safe4i.usf.core.usfmodel.block.PortInstance
+import org.safe4i.usf.core.usfmodel.block.BlocksFactory
+
+
+abstract class ControlFlowConnection extends Connection {
+	refers ControlFlowPort[1] sourcePort
+	refers ControlFlowPort[1] destinationPort
+
+	/**
+	 * Checks if this connection connects p1 and p2
+	 */
+	op boolean connects(Port p1, Port p2) {
+		if (destinationPort == p1 && sourcePort == p2 || destinationPort == p2 && sourcePort == p1) return true;
+		return false;
+	}
+}
+
+/**
+ * Control flow between two ports.
+ */
+class AssemblyControlFlowConnection extends ControlFlowConnection {
+	refers Block[1] sourceBlock
+	refers Block[1] destinationBlock
+
+	/**
+	 * Checks if the connection has the following source (Block+Port) configuration
+	 */
+	op boolean hasSource(Block context, Port port) {
+		if (sourcePort == port && sourceBlock == context) return true;
+		return false;
+	}
+
+	/**
+	 * Checks if the connection has the following target (Block+Port) configuration
+	 */
+	op boolean hasDestination(Block context, Port port) {
+		if (destinationPort == port && destinationBlock == context) return true;
+		return false;
+	}
+
+	/**
+	 * Get the source configuration of the connection which is Block and Port. 
+	 */
+	op PortInstance getSource() {
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		portInstance.block = sourceBlock;
+		portInstance.port = sourcePort;
+		return portInstance;
+	}
+
+	/**
+	 * Get the destination configuration of the connection which is Block and Port. 
+	 */
+	op PortInstance getDestination() {
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		portInstance.block = destinationBlock;
+		portInstance.port = destinationPort;
+		return portInstance;
+	}
+
+	op void setSource(PortInstance source){
+		sourceBlock = source.block
+		sourcePort = (source.port as ControlFlowPort)
+	}
+
+	op void setDestination(PortInstance destination) {
+		destinationBlock = destination.block
+		destinationPort = destination.port as ControlFlowPort
+	}
+}
+
+/**
+ * Provide or return the control flow to/from a inner block
+ */
+class DelegateControlFlowConnection extends ControlFlowConnection {
+	refers Block[1] innerBlock
+
+	/**
+	 * Checks if the connection has the following source (Block+Port) configuration
+	 */
+	op boolean hasSource(Block context, Port port) {
+		// hasSource(A, aa)
+		// con: A.aa --> bb
+		if (context.containsPort(sourcePort) && sourcePort == port && innerBlock == context) return true;
+		// hasSource(A, aa)
+		// con: bb --> A.aa
+		return false;
+	}
+
+	/**
+	 * Checks if the connection has the following target (Block+Port) configuration
+	 */
+	op boolean hasDestination(Block context, Port port) {
+		// hasDestination(A, aa)
+		// con: bb --> A.aa
+		if (context.containsPort(destinationPort) && destinationPort == port && innerBlock == context) return true;
+		// hasDestination(A, aa)
+		// con: A.aa --> bb
+		return false;
+	}
+
+	/**
+	 * Get the source configuration of the connection which is Block and Port. 
+	 * The Block can be null if it is the delegating side to the BlockType.
+	 */
+	op PortInstance getSource() {
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		if (innerBlock.containsPort(sourcePort)) portInstance.block = innerBlock else portInstance.block = null;
+		portInstance.port = sourcePort;
+		return portInstance;
+	}
+
+	/**
+	 * Get the destination configuration of the connection which is Block and Port. 
+	 * The Block can be null if it is the delegating side to the BlockType.
+	 */
+	op PortInstance getDestination() {
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		if (innerBlock.containsPort(destinationPort)) portInstance.block = innerBlock else portInstance.block = null;
+		portInstance.port = destinationPort;
+		return portInstance;
+	}
+
+	op void setSource(PortInstance source) {
+		sourcePort = (source.port as ControlFlowPort)
+		if(source.block !== null){
+			innerBlock = source.block
+		}
+	}
+
+	op void setDestination(PortInstance destination) {
+		destinationPort = destination.port as ControlFlowPort
+		if(destination.block !== null){
+			innerBlock = source.block
+		}
+	}
+}
+
+/**
+ * Control flow ports represent control flow interfaces for blocks.
+ */
+class ControlFlowPort extends Port {
+}
+
+/**
+ * Splits the control flow in the same execution context.
+ */
+class DecisionNode extends AbstractBlockType {
+	contains ControlFlowPort[1] inControlFlowPort
+	contains ControlFlowPort[1] outControlFlowPortTrue
+	contains ControlFlowPort[1] outControlFlowPortFalse
+	contains DataFlowPort[0..*] inDataFlowPorts
+	String[0..1] condition
+
+	op Port[] getAllPorts() {
+		var result = newLinkedList
+		result.add(inControlFlowPort)
+		result.add(outControlFlowPortTrue)
+		result.add(outControlFlowPortFalse)
+		return result.toEList
+	}
+}
+
+/**
+ * Merge of two control flow paths in the same execution context.
+ */
+class MergeNode extends AbstractBlockType {
+	contains ControlFlowPort[2..*] inControlFlowPorts
+	contains ControlFlowPort[1] outControlFlowPort
+
+	op Port[] getAllPorts() {
+		var result = newLinkedList
+		result.add(outControlFlowPort)
+		result.addAll(inControlFlowPorts)
+		return result.toEList
+	}
+}
+
+/**
+ * Splits control flow into N different execution contexts.
+ */
+class ForkNode extends AbstractBlockType {
+	contains ControlFlowPort[1] inControlFlowPort
+	contains ControlFlowPort[1..*] outControlFlowPorts
+
+	op Port[] getAllPorts() {
+		var result = newLinkedList
+		result.add(inControlFlowPort)
+		result.addAll(outControlFlowPorts)
+		return result.toEList
+	}
+}
+
+/**
+ * Merge of N control flow paths from N different execution contexts.
+ */
+class JoinNode extends AbstractBlockType {
+	contains ControlFlowPort[1..*] inControlFlowPorts
+	contains ControlFlowPort[1] outControlFlowPort
+
+	op Port[] getAllPorts() {
+		var result = newLinkedList
+		result.add(outControlFlowPort)
+		result.addAll(inControlFlowPorts)
+		return result.toEList
+	}
+}
+
+/**
+ * Abstract class to represent signals in a control flow
+ */
+abstract class SignalNode extends AbstractBlockType {
+}
+
+/**
+ * Depicts a transmission of a signal in a control flow
+ */
+class SendSignalNode extends SignalNode {
+	contains ControlFlowPort[1] inControlFlowPort
+	contains ControlFlowPort[1] outControlFlowPort
+
+	op Port[] getAllPorts() {
+		var result = newLinkedList
+		result.add(inControlFlowPort)
+		result.add(outControlFlowPort)
+		return result.toEList
+	}
+}
+
+/**
+ * Depicts the reception of a signal in a control flow
+ */
+class ReceiveSignalNode extends SignalNode {
+	contains ControlFlowPort[1] outControlFlowPort
+
+	op Port[] getAllPorts() {
+		var result = newLinkedList
+		result.add(outControlFlowPort)
+		return result.toEList
+	}
+}

@@ -1,0 +1,180 @@
+/**
+ * Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),
+ * ScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ */
+ 
+@Ecore(nsURI="https://www.universalsafetyformat.org/common")
+@GenModel(prefix="Commons", modelDirectory="org.safe4i.usf.core/src-gen", complianceLevel="8.0",
+	editPluginClass="org.safe4i.usf.core.usfmodel.USFEditPlugin", editDirectory="org.safe4i.usf.core.edit/src-gen",
+	childCreationExtenders="true", extensibleProviderFactory="true", copyrightText="Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),\nScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.\nThis program and the accompanying materials are made available under the\nterms of the Eclipse Public License 2.0 which is available at\nhttp://www.eclipse.org/legal/epl-2.0.\n\nSPDX-License-Identifier: EPL-2.0")
+package org.safe4i.usf.core.usfmodel.common
+
+import org.safe4i.usf.core.usfmodel.block.BlockType
+import org.safe4i.usf.core.usfmodel.block.BlocksFactory
+import org.safe4i.usf.core.usfmodel.errorHandling.ErrorHandler
+import org.safe4i.usf.core.usfmodel.errorHandling.ErrorHandlingFactory
+
+interface IModelContent {
+}
+
+/**
+ * Top level element which contains all model elements like Types, Blocks and ControlFlow aspects.
+ */
+class Model extends Identifiable {
+	contains IModelContent[0..*] content
+
+	/**
+	 * Add the given BlockType to this model
+	 */
+	op void addBlockType(BlockType blockType) {
+		content.add(blockType);
+	}
+
+	/**
+	 * Create new BlockType with a given name.
+	 */
+	op BlockType createBlockType(String name) {
+		var blockType = BlocksFactory.eINSTANCE.createBlockType();
+		blockType.name = name;
+		content.add(blockType);
+		return blockType;
+	}
+
+	/**
+	 * Create new ErrorHandler with a given name.
+	 */
+	op ErrorHandler createErrorHandler(String name) {
+		var errorHandler = ErrorHandlingFactory.eINSTANCE.createErrorHandler();
+		errorHandler.name = name;
+		content.add(errorHandler);
+		return errorHandler;
+	}
+
+	/**
+	 * Add the given BlockType to this model
+	 */
+	op void addStructType(StructType structType) {
+		content.add(structType);
+	}
+
+	/**
+	 * Create new StructType with a given name.
+	 */
+	op StructType createStructType(String name) {
+		var structType = CommonsFactory.eINSTANCE.createStructType();
+		structType.name = name;
+		content.add(structType);
+		return structType;
+	}
+
+	/**
+	 * Create new StructType with a given name.
+	 */
+	op PrimitiveType createPrimitiveType(String name) {
+		var primitiveType = CommonsFactory.eINSTANCE.createPrimitiveType();
+		primitiveType.name = name;
+		content.add(primitiveType);
+		return primitiveType;
+	}
+}
+
+/**
+ * Base class for all model classes with name.
+ */
+abstract class NamedElement {
+	String[1] name
+}
+
+/**
+ * Implemented by elements which can have documentation attached
+ */
+interface DocumentedElement {
+	@GenModel(propertyMultiLine="true")
+	String[0..1] documentation
+}
+
+/**
+ * Element implementing this interface will provide a UUID for the element 
+ * which should be at least unique in the scope of the resource.
+ * 
+ * It is advised to use algorithms of helpers like "java.util.UUID" to generate the UUID.
+ * 
+ * For more information including algorithms used to create UUIDs,see RFC 4122:
+ * A Universally Unique IDentifier (UUID) URN Namespace, section 4.2"Algorithms for Creating a Time-Based UUID".
+ */
+interface Identifiable {
+	@GenModel(property="Readonly")
+	id String[1] uniqueIdentifier
+}
+
+/**
+ * Package to enable the organization of the model.
+ */
+class Package extends IModelContent, Model, NamedElement, DocumentedElement {
+}
+
+// ****************************************************************
+/**
+ * Common super class for all domain types primitive as well as complex types
+ */
+abstract class DomainType extends IModelContent, NamedElement, DocumentedElement, Identifiable {
+}
+
+/**
+ * Represents primitive types like Integer, Boolean, Byte and String
+ */
+class PrimitiveType extends DomainType {
+}
+
+/**
+ * Common super class for all complex types like enums, structs, arrays etc.
+ */
+abstract class ComplexType extends DomainType {
+}
+
+/**
+ * Type which represents an array that contains elements of a certain type and has a dedicated length
+ */
+class ArrayType extends ComplexType {
+	int[1] length = "0"
+	refers DomainType[1] ^type
+}
+
+/**
+ * Type to create a more complex type with a nested internal type structure
+ */
+class StructType extends ComplexType {
+	contains StructMember[0..*] members
+
+	/**
+	 * Create new StructMember with a given name.
+	 */
+	op StructMember createStructMember(String name, DomainType ^type) {
+		var structMember = CommonsFactory.eINSTANCE.createStructMember();
+		structMember.name = name;
+		structMember.^type = ^type;
+		members.add(structMember);
+		return structMember;
+	}
+}
+
+class StructMember extends NamedElement,Identifiable {
+	refers DomainType[1] ^type
+}
+
+/**
+ * A type with a fixed set of named values.
+ */
+class EnumerationType extends ComplexType {
+	contains EnumerationLiteral[0..*] literals
+}
+
+class EnumerationLiteral extends Identifiable {
+	String[1] literal
+	int[0..1] value
+}

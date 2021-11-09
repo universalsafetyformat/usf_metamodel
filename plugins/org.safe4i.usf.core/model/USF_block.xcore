@@ -1,0 +1,475 @@
+/**
+ * Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),
+ * ScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ */
+
+@Ecore(nsURI="https://www.universalsafetyformat.org/block")
+@GenModel(prefix="Blocks", modelDirectory="org.safe4i.usf.core/src-gen", complianceLevel="8.0",
+	editPluginClass="org.safe4i.usf.core.usfmodel.USFEditPlugin", editDirectory="org.safe4i.usf.core.edit/src-gen",
+	childCreationExtenders="true", extensibleProviderFactory="true", copyrightText="Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),\nScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.\nThis program and the accompanying materials are made available under the\nterms of the Eclipse Public License 2.0 which is available at\nhttp://www.eclipse.org/legal/epl-2.0.\n\nSPDX-License-Identifier: EPL-2.0")
+package org.safe4i.usf.core.usfmodel.block
+
+import org.eclipse.xtext.EcoreUtil2
+import org.safe4i.usf.core.usfmodel.common.DocumentedElement
+import org.safe4i.usf.core.usfmodel.common.IModelContent
+import org.safe4i.usf.core.usfmodel.common.Identifiable
+import org.safe4i.usf.core.usfmodel.common.NamedElement
+import org.safe4i.usf.core.usfmodel.common.DomainType
+import org.safe4i.usf.core.usfmodel.controlFlow.ControlFlowConnection
+import org.safe4i.usf.core.usfmodel.controlFlow.ControlFlowPort
+import org.safe4i.usf.core.usfmodel.controlFlow.ControlFlowsFactory
+import org.safe4i.usf.core.usfmodel.errorHandling.ErrorControlFlowPort
+import org.safe4i.usf.core.usfmodel.errorHandling.ErrorDataPort
+import org.safe4i.usf.core.usfmodel.errorHandling.ErrorHandlingFactory
+
+
+// ****************************************************************
+// Generic Block, Port and Connection concepts which are reused by ControlFlow and Error Handling
+// ****************************************************************
+/**
+ * Class representing a software functionality for a large variety of different abstraction levels.
+ * E.g. a function in Simulink or a basic block in an intermediate representation
+ * 
+ */
+abstract class AbstractBlockType extends IModelContent, NamedElement, Identifiable {
+	op Port[] getAllPorts()
+	/**
+	 * Get a port from the BlockType by name
+	 */
+	op Port getPortByName(String name) {
+		for (Port p : allPorts) {
+			if (p.name == name) return p;
+		}
+	}
+}
+
+abstract class BlockRelationship extends Identifiable {
+	refers Block[1] source
+}
+
+class UseRelationship extends BlockRelationship {
+	refers Block[1] uses
+}
+
+class DeployRelationship extends BlockRelationship {
+	refers Block[1] deployedAt
+}
+
+/**
+ * A connection between any pair of ports.
+ */
+abstract class Connection extends Identifiable {
+	op boolean connects(Port p1, Port p2)
+	op boolean hasSource(Block context, Port port)
+	op PortInstance getSource()
+	op boolean hasDestination(Block context, Port port)
+	op PortInstance getDestination()
+	op void setSource(PortInstance source)
+	op void setDestination(PortInstance destination)
+}
+
+/**
+ * Ports represent an interfaces for blocks.
+ */
+abstract class Port extends NamedElement, DocumentedElement, Identifiable {
+	PortDirection[1] direction = "UNSET"
+	op PortInstance getPeerPort(Block context) {
+		val rootModel = EcoreUtil2.getRootContainer(this);
+		val connections = EcoreUtil2.getAllContentsOfType(rootModel, Connection);
+		var result = connections.parallelStream.filter(c|c.hasSource(context, this)).findAny();
+		if (result.isPresent) {
+			return result.get().destination;
+		}
+		result = connections.parallelStream.filter(c|c.hasDestination(context, this)).findAny();
+		if (result.isPresent) {
+			return result.get().source;
+		}
+
+		return null;
+	}
+}
+
+/**
+ * Represents a Port in its context Block.
+ */
+class PortInstance {
+	refers Port port
+	refers Block block
+}
+
+/**
+ * A class representing an instantiated BlockType.
+ */
+class Block extends NamedElement, DocumentedElement, Identifiable {
+	refers AbstractBlockType[1] ^type
+	/**
+	 * Duplicate a Block next to the original Block with a new name
+	 */
+	op Block duplicate(String name) {
+		var block = BlocksFactory.eINSTANCE.createBlock();
+		block.name = name;
+		block.^type = ^type;
+		(eContainer as BlockType).blocks.add(block);
+		return block;
+	}
+	/**
+	 * Get the BlockType which contains this Block
+	 */
+	op BlockType getParent() {
+		return (eContainer as BlockType);
+	}
+	/**
+	 * Check if a block contains a port
+	 */
+	op boolean containsPort(Port port) {
+		if (^type === null) return false;
+		for (Port p : ^type.allPorts) {
+			if (p == port) return true;
+		}
+		return false;
+	}
+	/**
+	 * Get a port from the Block by name
+	 */
+	op PortInstance getPortByName(String name) {
+		if (^type === null) return null;
+
+		var port = ^type.getPortByName(name);
+
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		portInstance.block = this;
+		portInstance.port = port;
+		return portInstance;
+	}
+	/**
+	 * Get the corresponding port from a block the port needs to match by model type and name (for DataPorts also by type). 
+	 * Note: typically used after duplicate(..)
+	 */
+	op Port getMatchingPort(Port port) {
+		if (^type === null || port === null) return null;
+		for (Port p : ^type.allPorts) {
+			if (p instanceof DataFlowPort && port instanceof DataFlowPort) {
+				if (p.name == port.name || (p as DataFlowPort).^type == ( port as DataFlowPort).^type) return p;
+			} else if (p instanceof ControlFlowPort && port instanceof ControlFlowPort) {
+				if (p.name == port.name) return p;
+			}
+		}
+		return null;
+	}
+}
+
+// ****************************************************************
+/**
+ * A BlockType is a composite: It may contain nested Blocks of different types, and connections
+ * between them. 
+ */
+class BlockType extends AbstractBlockType, DocumentedElement {
+	contains Block[0..*] blocks
+	contains DataFlowPort[0..*] dataFlowPorts
+	contains DataFlowConnection[0..*] dataFlowConnections
+	contains ControlFlowPort[0..*] controlFlowPorts
+	contains ControlFlowConnection[0..*] controlFlowConnections
+	contains BlockRelationship[0..*] blockRelationships
+	op Port[] getAllPorts() {
+		var result = newLinkedList
+		result.addAll(dataFlowPorts)
+		result.addAll(controlFlowPorts)
+		return result.toEList
+	}
+	/**
+	 * Add the given Block to this BlockType
+	 */
+	op void addBlock(Block block) {
+		blocks.add(block);
+	}
+	/**
+	 * Create a new instance of a Block with the given name and type and adds it as a children to this BlockType.
+	 */
+	op Block createBlock(String name, BlockType blockType) {
+		var block = BlocksFactory.eINSTANCE.createBlock();
+		block.name = name;
+		block.^type = blockType;
+		blocks.add(block);
+		return block;
+	}
+	/**
+	 * Create DataFlowPort for the BlockType, with given name, type and direction
+	 */
+	op DataFlowPort createDataFlowPort(String name, DomainType portType, PortDirection direction) {
+		var port = BlocksFactory.eINSTANCE.createDataFlowPort();
+		port.name = name;
+		port.^type = portType;
+		port.direction = direction;
+		dataFlowPorts.add(port);
+		return port;
+	}
+	/**
+	 * Create ControlFlowPort for the Blocktype, with given name and direction
+	 */
+	op ControlFlowPort createControlFlowPort(String name, DomainType portType, PortDirection direction) {
+		var port = ControlFlowsFactory.eINSTANCE.createControlFlowPort();
+		port.name = name;
+		port.direction = direction;
+		controlFlowPorts.add(port);
+		return port;
+	}
+	/**
+	 * Create ErrorDataPort for the BlockType, with given name, type and direction
+	 */
+	op ErrorDataPort createErrorDataPort(String name, DomainType portType, PortDirection direction) {
+		var port = ErrorHandlingFactory.eINSTANCE.createErrorDataPort();
+		port.name = name;
+		port.^type = portType;
+		port.direction = direction;
+		dataFlowPorts.add(port);
+		return port;
+	}
+	/**
+	 * Create ErrorControlFlowPort for the BlockType, with given name and direction
+	 */
+	op ErrorControlFlowPort createErrorControlFlowPort(String name, DomainType portType, PortDirection direction) {
+		var port = ErrorHandlingFactory.eINSTANCE.createErrorControlFlowPort();
+		port.name = name;
+		port.direction = direction;
+		controlFlowPorts.add(port);
+		return port;
+	}
+	/**
+	 * Get the connection based on the source and destination PortInstance
+	 */
+	op Connection getConnection(PortInstance source, PortInstance destination) {
+
+		var controlFlowConnection = controlFlowConnections.stream.filter(
+			c |
+				c.hasSource(source.block, source.port) && c.hasDestination(destination.block, destination.port)
+		).findAny();
+		if (controlFlowConnection.isPresent) {
+			return controlFlowConnection.get();
+		}
+		var dataFlowConnection = dataFlowConnections.stream.filter(
+			c |
+				c.hasSource(source.block, source.port) && c.hasDestination(destination.block, destination.port)
+		).findAny();
+		if (dataFlowConnection.isPresent) {
+			return dataFlowConnection.get();
+		}
+		return null;
+	}
+	op AssemblyDataFlowConnection createAssemblyDataFlowConnection(PortInstance source, PortInstance destination) {
+		var connection = BlocksFactory.eINSTANCE.createAssemblyDataFlowConnection();
+		// maybe check before casting?! ... but for now we leave it as its is now
+		connection.sourcePort = source.port as DataFlowPort;
+		connection.sourceBlock = source.block;
+		connection.destinationPort = destination.port as DataFlowPort;
+		connection.destinationBlock = destination.block;
+
+		dataFlowConnections.add(connection)
+
+		return connection;
+	}
+	op DelegateDataFlowConnection createDelegateDataFlowConnection(PortInstance innerPort, Port delegatePort) {
+		var connection = BlocksFactory.eINSTANCE.createDelegateDataFlowConnection();
+		// maybe check before casting?! ... but for now we leave it as its is now
+		connection.sourcePort = innerPort.port as DataFlowPort;
+		connection.innerBlock = innerPort.block;
+		connection.destinationPort = delegatePort as DataFlowPort;
+
+		dataFlowConnections.add(connection)
+
+		return connection;
+	}
+	op Connection createAssemblyControlFlowConnection(PortInstance source, PortInstance destination) {
+		var connection = ControlFlowsFactory.eINSTANCE.createAssemblyControlFlowConnection();
+		// maybe check before casting?! ... but for now we leave it as its is now
+		connection.sourcePort = source.port as ControlFlowPort;
+		connection.sourceBlock = source.block;
+		connection.destinationPort = destination.port as ControlFlowPort;
+		connection.destinationBlock = destination.block;
+
+		controlFlowConnections.add(connection)
+
+		return connection;
+	}
+	op Connection createDelegateControlFlowConnection(PortInstance innerPort, Port delegatePort) {
+		var connection = ControlFlowsFactory.eINSTANCE.createDelegateControlFlowConnection();
+		// maybe check before casting?! ... but for now we leave it as its is now
+		connection.sourcePort = innerPort.port as ControlFlowPort;
+		connection.innerBlock = innerPort.block;
+		connection.destinationPort = delegatePort as ControlFlowPort;
+
+		controlFlowConnections.add(connection)
+
+		return connection;
+	}
+	/**
+	 * Create UseRelationship, with given blocks.
+	 * @source  source of the relationship
+	 * @uses	the block the source is using
+	 */
+	op UseRelationship createUseRelationship(Block source, Block uses) {
+		var useRelationship = BlocksFactory.eINSTANCE.createUseRelationship();
+		useRelationship.source = source;
+		useRelationship.uses = uses;
+		blockRelationships.add(useRelationship);
+		return useRelationship;
+	}
+	/**
+	 * Create DeployRelationship, with given blocks.
+	 * @source  source of the deployment
+	 * @deployedAt	the block the source is deployed at
+	 */
+	op DeployRelationship createDeployRelationship(Block source, Block deployedAt) {
+		var deployRelationship = BlocksFactory.eINSTANCE.createDeployRelationship();
+		deployRelationship.source = source;
+		deployRelationship.deployedAt = deployedAt;
+		blockRelationships.add(deployRelationship);
+		return deployRelationship;
+	}
+}
+
+/**
+ * Ports represent data flow interfaces for blocks.
+ * Have to be either an in or an out port.
+ */
+class DataFlowPort extends Port {
+	refers DomainType[1] ^type
+}
+
+/**
+ * The "Direction" of the Port which indicates how the information will flow
+ */
+enum PortDirection {
+	UNSET = 0
+	IN = 1
+	OUT = 2
+	INOUT = 3
+}
+
+/**
+ * A data flow connection between any pair of data ports.
+ */
+abstract class DataFlowConnection extends Connection {
+	refers DataFlowPort[1] sourcePort
+	refers DataFlowPort[1] destinationPort
+	/**
+	 * Checks if this connection connects p1 and p2
+	 */
+	op boolean connects(Port p1, Port p2) {
+		if (destinationPort == p1 && sourcePort == p2 || destinationPort == p2 && sourcePort == p1) return true;
+		return false;
+	}
+}
+
+/**
+ * Data flow between two ports.
+ */
+class AssemblyDataFlowConnection extends DataFlowConnection {
+	refers Block[1] sourceBlock
+	refers Block[1] destinationBlock
+	/**
+	 * Checks if the connection has the following source (Block+Port) configuration
+	 */
+	op boolean hasSource(Block context, Port port) {
+		if (sourcePort == port && sourceBlock == context) return true;
+		return false;
+	}
+	/**
+	 * Checks if the connection has the following target (Block+Port) configuration
+	 */
+	op boolean hasDestination(Block context, Port port) {
+		if (destinationPort == port && destinationBlock == context) return true;
+		return false;
+	}
+	/**
+	 * Get the source configuration of the connection which is Block and Port. 
+	 */
+	op PortInstance getSource() {
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		portInstance.block = sourceBlock;
+		portInstance.port = sourcePort;
+		return portInstance;
+	}
+	/**
+	 * Get the destination configuration of the connection which is Block and Port. 
+	 */
+	op PortInstance getDestination() {
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		portInstance.block = destinationBlock;
+		portInstance.port = destinationPort;
+		return portInstance;
+	}
+	op void setSource(PortInstance source) {
+		sourceBlock = source.block
+		sourcePort = (source.port as DataFlowPort)
+	}
+	op void setDestination(PortInstance destination) {
+		destinationBlock = destination.block
+		destinationPort = destination.port as DataFlowPort
+	}
+}
+
+/**
+ * Class for all delegate connections.
+ */
+class DelegateDataFlowConnection extends DataFlowConnection {
+	refers Block[1] innerBlock
+	/**
+	 * Checks if the connection has the following source (Block+Port) configuration
+	 */
+	op boolean hasSource(Block context, Port port) {
+		// hasSource(A, aa)
+		// con: A.aa --> bb
+		if ((context === null || (context.containsPort(sourcePort) && innerBlock == context)) && sourcePort == port) return true;
+		// hasSource(A, aa)
+		// con: bb --> A.aa
+		return false;
+	}
+	/**
+	 * Checks if the connection has the following target (Block+Port) configuration
+	 */
+	op boolean hasDestination(Block context, Port port) {
+		// hasDestination(A, aa)
+		// con: bb --> A.aa
+		if ((context === null || (context.containsPort(destinationPort) && innerBlock == context)) && destinationPort == port) return true;
+		// hasDestination(A, aa)
+		// con: A.aa --> bb
+		return false;
+	}
+	/**
+	 * Get the source configuration of the connection which is Block and Port. 
+	 * The Block can be null if it is the delegating side to the BlockType.
+	 */
+	op PortInstance getSource() {
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		if (innerBlock.containsPort(sourcePort)) portInstance.block = innerBlock else portInstance.block = null;
+		portInstance.port = sourcePort;
+		return portInstance;
+	}
+	/**
+	 * Get the destination configuration of the connection which is Block and Port. 
+	 * The Block can be null if it is the delegating side to the BlockType.
+	 */
+	op PortInstance getDestination() {
+		var portInstance = BlocksFactory.eINSTANCE.createPortInstance();
+		if (innerBlock.containsPort(destinationPort)) portInstance.block = innerBlock else portInstance.block = null;
+		portInstance.port = destinationPort;
+		return portInstance;
+	}
+	op void setSource(PortInstance source) {
+		sourcePort = (source.port as DataFlowPort)
+		if (source.block !== null) {
+			innerBlock = source.block
+		}
+	}
+	op void setDestination(PortInstance destination) {
+		destinationPort = destination.port as DataFlowPort
+		if (destination.block !== null) {
+			innerBlock = source.block
+		}
+	}
+}

@@ -1,0 +1,38 @@
+/**
+ * Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),
+ * ScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ */
+ 
+@Ecore(nsURI="https://www.universalsafetyformat.org/portTemplate")
+@GenModel(prefix="PortTemplates", modelDirectory="org.safe4i.usf.core/src-gen", complianceLevel="8.0",
+	editPluginClass="org.safe4i.usf.core.usfmodel.USFEditPlugin", editDirectory="org.safe4i.usf.core.edit/src-gen",
+	childCreationExtenders="true", extensibleProviderFactory="true", copyrightText="Copyright (c) 2021 itemis AG (www.itemis.com), FZI Forschungszentrum Informatik (www.fzi.de),\nScopeSET Technology Deutschland GmbH (https://www.scopeset.de) and others.\nThis program and the accompanying materials are made available under the\nterms of the Eclipse Public License 2.0 which is available at\nhttp://www.eclipse.org/legal/epl-2.0.\n\nSPDX-License-Identifier: EPL-2.0")
+package org.safe4i.usf.core.usfmodel.portTemplate
+
+import org.safe4i.usf.core.usfmodel.block.Block
+import org.safe4i.usf.core.usfmodel.common.IModelContent
+import org.safe4i.usf.core.usfmodel.common.Identifiable
+import org.safe4i.usf.core.usfmodel.common.DomainType
+
+// ****************************************************************
+// Template type elements for data flow
+// ****************************************************************
+/**
+ * Template type for data flow ports
+ */
+class TemplateType extends DomainType {
+}
+
+/**
+ * Assigned type for instance of template type
+ */
+class TemplateAssignment extends IModelContent, Identifiable {
+	refers Block[1] context
+	refers TemplateType[1] templateType
+	refers DomainType[1] resolvedType
+}

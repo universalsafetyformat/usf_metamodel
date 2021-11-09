@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+-->
+
+<plugin>
+
+   <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
+      <!-- @generated USF_block -->
+      <factory
+            uri="https://www.universalsafetyformat.org/block"
+            class="org.safe4i.usf.core.usfmodel.block.provider.BlocksItemProviderAdapterFactory"
+            supportedTypes=
+              "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
+               org.eclipse.emf.edit.provider.IStructuredItemContentProvider
+               org.eclipse.emf.edit.provider.ITreeItemContentProvider
+               org.eclipse.emf.edit.provider.IItemLabelProvider
+               org.eclipse.emf.edit.provider.IItemPropertySource"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.childCreationExtenders">
+      <!-- @generated USF_block -->
+      <extender
+            uri="https://www.universalsafetyformat.org/common"
+            class="org.safe4i.usf.core.usfmodel.block.provider.BlocksItemProviderAdapterFactory$CommonsChildCreationExtender"/>
+      <extender
+            uri="https://www.universalsafetyformat.org/controlFlow"
+            class="org.safe4i.usf.core.usfmodel.block.provider.BlocksItemProviderAdapterFactory$ControlFlowsChildCreationExtender"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
+      <!-- @generated USF_portTemplate -->
+      <factory
+            uri="https://www.universalsafetyformat.org/portTemplate"
+            class="org.safe4i.usf.core.usfmodel.portTemplate.provider.PortTemplatesItemProviderAdapterFactory"
+            supportedTypes=
+              "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
+               org.eclipse.emf.edit.provider.IStructuredItemContentProvider
+               org.eclipse.emf.edit.provider.ITreeItemContentProvider
+               org.eclipse.emf.edit.provider.IItemLabelProvider
+               org.eclipse.emf.edit.provider.IItemPropertySource"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.childCreationExtenders">
+      <!-- @generated USF_portTemplate -->
+      <extender
+            uri="https://www.universalsafetyformat.org/common"
+            class="org.safe4i.usf.core.usfmodel.portTemplate.provider.PortTemplatesItemProviderAdapterFactory$CommonsChildCreationExtender"/>
+   </extension>
+   <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
+      <!-- @generated USF_common -->
+      <factory
+            uri="https://www.universalsafetyformat.org/common"
+            class="org.safe4i.usf.core.usfmodel.common.provider.CommonsItemProviderAdapterFactory"
+            supportedTypes=
+              "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
+               org.eclipse.emf.edit.provider.IStructuredItemContentProvider
+               org.eclipse.emf.edit.provider.ITreeItemContentProvider
+               org.eclipse.emf.edit.provider.IItemLabelProvider
+               org.eclipse.emf.edit.provider.IItemPropertySource"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
+      <!-- @generated USF_controlFlow -->
+      <factory
+            uri="https://www.universalsafetyformat.org/controlFlow"
+            class="org.safe4i.usf.core.usfmodel.controlFlow.provider.ControlFlowsItemProviderAdapterFactory"
+            supportedTypes=
+              "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
+               org.eclipse.emf.edit.provider.IStructuredItemContentProvider
+               org.eclipse.emf.edit.provider.ITreeItemContentProvider
+               org.eclipse.emf.edit.provider.IItemLabelProvider
+               org.eclipse.emf.edit.provider.IItemPropertySource"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.childCreationExtenders">
+      <!-- @generated USF_controlFlow -->
+      <extender
+            uri="https://www.universalsafetyformat.org/block"
+            class="org.safe4i.usf.core.usfmodel.controlFlow.provider.ControlFlowsItemProviderAdapterFactory$BlocksChildCreationExtender"/>
+      <extender
+            uri="https://www.universalsafetyformat.org/common"
+            class="org.safe4i.usf.core.usfmodel.controlFlow.provider.ControlFlowsItemProviderAdapterFactory$CommonsChildCreationExtender"/>
+   </extension>
+   <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
+      <!-- @generated USF_parameter -->
+      <factory
+            uri="https://www.universalsafetyformat.org/parameter"
+            class="org.safe4i.usf.core.usfmodel.parameter.provider.ParametersItemProviderAdapterFactory"
+            supportedTypes=
+              "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
+               org.eclipse.emf.edit.provider.IStructuredItemContentProvider
+               org.eclipse.emf.edit.provider.ITreeItemContentProvider
+               org.eclipse.emf.edit.provider.IItemLabelProvider
+               org.eclipse.emf.edit.provider.IItemPropertySource"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.childCreationExtenders">
+      <!-- @generated USF_parameter -->
+      <extender
+            uri="https://www.universalsafetyformat.org/common"
+            class="org.safe4i.usf.core.usfmodel.parameter.provider.ParametersItemProviderAdapterFactory$CommonsChildCreationExtender"/>
+   </extension>
+   <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
+      <!-- @generated USF_errorHandling -->
+      <factory
+            uri="https://www.universalsafetyformat.org/errorHandling"
+            class="org.safe4i.usf.core.usfmodel.errorHandling.provider.ErrorHandlingItemProviderAdapterFactory"
+            supportedTypes=
+              "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
+               org.eclipse.emf.edit.provider.IStructuredItemContentProvider
+               org.eclipse.emf.edit.provider.ITreeItemContentProvider
+               org.eclipse.emf.edit.provider.IItemLabelProvider
+               org.eclipse.emf.edit.provider.IItemPropertySource"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.childCreationExtenders">
+      <!-- @generated USF_errorHandling -->
+      <extender
+            uri="https://www.universalsafetyformat.org/block"
+            class="org.safe4i.usf.core.usfmodel.errorHandling.provider.ErrorHandlingItemProviderAdapterFactory$BlocksChildCreationExtender"/>
+      <extender
+            uri="https://www.universalsafetyformat.org/common"
+            class="org.safe4i.usf.core.usfmodel.errorHandling.provider.ErrorHandlingItemProviderAdapterFactory$CommonsChildCreationExtender"/>
+      <extender
+            uri="https://www.universalsafetyformat.org/controlFlow"
+            class="org.safe4i.usf.core.usfmodel.errorHandling.provider.ErrorHandlingItemProviderAdapterFactory$ControlFlowsChildCreationExtender"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
+      <!-- @generated USF_safetypattern -->
+      <factory
+            uri="https://www.universalsafetyformat.org/safetyPattern"
+            class="org.safe4i.usf.core.usfmodel.safetyPattern.provider.SafetyPatternItemProviderAdapterFactory"
+            supportedTypes=
+              "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
+               org.eclipse.emf.edit.provider.IStructuredItemContentProvider
+               org.eclipse.emf.edit.provider.ITreeItemContentProvider
+               org.eclipse.emf.edit.provider.IItemLabelProvider
+               org.eclipse.emf.edit.provider.IItemPropertySource"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.edit.childCreationExtenders">
+      <!-- @generated USF_safetypattern -->
+      <extender
+            uri="https://www.universalsafetyformat.org/common"
+            class="org.safe4i.usf.core.usfmodel.safetyPattern.provider.SafetyPatternItemProviderAdapterFactory$CommonsChildCreationExtender"/>
+   </extension>
+</plugin>

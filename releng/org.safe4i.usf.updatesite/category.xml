@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="org.safe4i.usf.core.feature">
+      <category name="org.safe4i.usf"/>
+   </feature>
+   <category-def name="org.safe4i.usf" label="USF Metamodel">
+      <description>
+         The Universal Safety Format (short: USF) enables the user to generate and weave application-specific safety mechanisms into different domains using one pattern description per safety mechanism type.
+
+USF Metamodel: A domain-agnostic metamodel to describe the structure of functionality including the data and control flow.
+      </description>
+   </category-def>
+</site>
