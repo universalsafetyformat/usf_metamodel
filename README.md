@@ -35,6 +35,10 @@ Currently this repository contains:
 *  a maven/Tycho command-line build
 *  some Eclipse projects for creating an Eclipse feature and a P2 repo
 
+## USF Metamodel p2 update site
+
+https://universalsafetyformat.github.io/usf_metamodel_p2/
+
 ## License
 
 This project is licensed under the [Eclipse Public License - v 2.0](./LICENSE).
